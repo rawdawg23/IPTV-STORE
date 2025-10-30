@@ -1,0 +1,90 @@
+/* In your index.css or equivalent global stylesheet */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #030712; /* Tailwind gray-950, your Hero's fallback bg */
+  color: #d1d5db; /* Tailwind gray-300, a good default text color */
+  /* Ensure full height for sticky footer or full-page layouts */
+  height: 100%;
+}
+
+/* If your .App div in App.js has specific styles in App.css, review them.
+   Usually, it doesn't need much that would interfere with z-index.
+   Avoid transform, filter, or explicit z-index on .App if possible. */
+#root,
+.App {
+  /* Assuming #root is your React mount point */
+  min-height: 100vh; /* Ensures the app container can fill the screen */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Your custom pattern-pan animation */
+@keyframes pattern-pan {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(5%, 5%);
+  }
+}
+.animate-pattern-pan {
+  animation: pattern-pan 30s linear infinite alternate;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+@layer utilities {
+  .bg-gradient-to-r {
+    background-image: linear-gradient(to right, var(--tw-gradient-stops));
+  }
+
+  .from-blue-600 {
+    --tw-gradient-from: #2563eb;
+    --tw-gradient-stops: var(--tw-gradient-from),
+      var(--tw-gradient-to, rgba(37, 99, 235, 0));
+  }
+
+  .to-purple-600 {
+    --tw-gradient-to: #9333ea;
+  }
+
+  .from-indigo-500 {
+    --tw-gradient-from: #6366f1;
+    --tw-gradient-stops: var(--tw-gradient-from),
+      var(--tw-gradient-to, rgba(99, 102, 241, 0));
+  }
+
+  .to-purple-600 {
+    --tw-gradient-to: #9333ea;
+  }
+
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+}
