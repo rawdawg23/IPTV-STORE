@@ -7,11 +7,9 @@
 2. **Import on Vercel**
    - Go to [vercel.com](https://vercel.com) → **Add New** → **Project**.
    - Import the repo `rawdawg23/IPTV-STORE`.
-   - Set **Root Directory** to **`Client`** (click Edit, then choose the `Client` folder).
-   - Vercel will use:
-     - **Build Command:** `npm run build`
-     - **Output Directory:** `build`
+   - **Leave Root Directory blank** (repo root). The root `vercel.json` will build the `Client` folder and use `Client/build` as output.
    - Click **Deploy**.
+   - If you get 404, check **Deployments** → latest → **Building** logs to see if the build failed.
 
 3. **Environment variables (Vercel)**  
    In the project → **Settings** → **Environment Variables**, add:
