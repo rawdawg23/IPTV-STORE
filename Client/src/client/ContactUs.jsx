@@ -50,8 +50,9 @@ const ContactUs = () => {
     }
   };
 
-  const whatsappNumber = "212620303597";
-  const contactEmail = "yassinaitamghar8@gmail.com";
+  const whatsappDisplay = "07599960494";
+  const whatsappLinkNumber = "44" + whatsappDisplay.replace(/^0/, ""); // UK international for wa.me
+  const contactEmail = "hodge2023@outlook.com";
 
   return (
     <section
@@ -104,7 +105,7 @@ const ContactUs = () => {
                 </a>
 
                 <a
-                  href={`https://wa.me/${whatsappNumber}`}
+                  href={`https://wa.me/${whatsappLinkNumber}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center group p-3 rounded-lg transition-all duration-300 hover:bg-green-900 hover:bg-opacity-40"
@@ -114,7 +115,7 @@ const ContactUs = () => {
                   </div>
                   <div>
                     <p className="font-medium text-white">WhatsApp</p>
-                    <p className="text-sm text-gray-300">+{whatsappNumber}</p>
+                    <p className="text-sm text-gray-300">{whatsappDisplay}</p>
                   </div>
                 </a>
               </div>

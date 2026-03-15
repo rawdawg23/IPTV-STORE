@@ -348,9 +348,9 @@ const Navbar = () => {
           </div>
           <div
             className="ml-2 text-lg sm:text-xl md:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400 hover:from-blue-300 hover:to-teal-300 transition-all duration-300" // Adjusted font size for sm breakpoint
-            aria-label="NEXTAZ TV home"
+            aria-label="Evo Media home"
           >
-            NEXTAZ TV
+            Evo Media
           </div>
         </motion.div>
         {/* Desktop Navigation Links */}

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Contact = require("../models/Contact");
+const { sendContactNotification } = require("../utils/mailer");
 
 // POST - Create new contact submission
 router.post("/", async (req, res) => {
@@ -32,6 +33,13 @@ router.post("/", async (req, res) => {
 
     const contact = new Contact(contactData);
     await contact.save();
+
+    // Send a copy of the submission to the site owner email (non-blocking)
+    sendContactNotification({
+      name: contact.name,
+      email: contact.email,
+      message: contact.message,
+    }).catch((err) => console.error("Contact email error:", err));
 
     res.status(201).json({
       success: true,

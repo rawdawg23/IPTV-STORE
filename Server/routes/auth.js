@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const crypto = require("crypto");
 const User = require("../models/User");
 const Subscription = require("../models/Subscription");
 const jwt = require("jsonwebtoken");
+const { verifyIdToken } = require("../utils/firebaseAdmin");
 
 // Middleware to verify JWT token
 const authenticateToken = async (req, res, next) => {
@@ -139,6 +141,73 @@ router.post("/login", async (req, res) => {
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: "Login failed" });
+  }
+});
+
+// POST - Sign in with Firebase (idToken from Firebase Auth on client)
+router.post("/firebase", async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) {
+      return res.status(400).json({ error: "Firebase idToken is required" });
+    }
+    const decoded = await verifyIdToken(idToken);
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid or expired Firebase token" });
+    }
+    const uid = decoded.uid || decoded.sub;
+    const firebaseEmail = decoded.email;
+    const displayName = decoded.name;
+    const email = (firebaseEmail || "").trim().toLowerCase();
+    if (!email) {
+      return res.status(400).json({ error: "Firebase account must have an email" });
+    }
+
+    let user = await User.findOne({ $or: [{ firebaseUid: uid }, { email }] });
+    if (!user) {
+      user = new User({
+        name: displayName || email.split("@")[0] || "User",
+        email,
+        firebaseUid: uid,
+        password: crypto.randomBytes(24).toString("hex"),
+      });
+      await user.save();
+
+      const subscription = new Subscription({
+        userId: user._id,
+        plan: "basic",
+        amount: 0,
+        status: "trial",
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        features: {
+          channels: 100,
+          quality: "SD",
+          connections: 1,
+          vodLibrary: false,
+          premiumSports: false,
+        },
+      });
+      await subscription.save();
+    } else if (!user.firebaseUid) {
+      user.firebaseUid = uid;
+      await user.save();
+    }
+
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      success: true,
+      message: "Signed in with Firebase",
+      token,
+      user: user.getPublicProfile(),
+    });
+  } catch (error) {
+    console.error("Firebase auth error:", error);
+    res.status(500).json({ error: "Firebase sign-in failed" });
   }
 });
 

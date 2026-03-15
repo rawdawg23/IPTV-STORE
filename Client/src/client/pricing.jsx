@@ -75,75 +75,29 @@ const Pricing = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   
-  // Add default pricing plans in case API fails
-  const defaultPlans = [
-    {
-      _id: "default1",
-      plan: "basic",
-      name: "Basic",
-      description: "Perfect for casual viewers",
-      monthlyPrice: 9.99,
-      yearlyPrice: 99.99,
-      features: {
-        channels: 100,
-        quality: "HD",
-        connections: 1,
-        vodLibrary: false,
-        premiumSports: false
-      },
-      isPopular: false
-    },
-    {
-      _id: "default2",
-      plan: "standard",
-      name: "Standard",
-      description: "Great for families",
-      monthlyPrice: 19.99,
-      yearlyPrice: 199.99,
-      features: {
-        channels: 500,
-        quality: "FHD",
-        connections: 3,
-        vodLibrary: true,
-        premiumSports: false
-      },
-      isPopular: true
-    },
-    {
-      _id: "default3",
-      plan: "premium",
-      name: "Premium",
-      description: "Ultimate entertainment package",
-      monthlyPrice: 29.99,
-      yearlyPrice: 299.99,
-      features: {
-        channels: 1000,
-        quality: "4K",
-        connections: 5,
-        vodLibrary: true,
-        premiumSports: true
-      },
-      isPopular: false
-    }
-  ];
-
   // Fetch pricing plans from database
   useEffect(() => {
+    const defaultPlansForFetch = [
+      { _id: "default1", plan: "basic", name: "Basic", description: "Perfect for casual viewers", monthlyPrice: 9.99, yearlyPrice: 99.99, features: { channels: 100, quality: "HD", connections: 1, vodLibrary: false, premiumSports: false }, isPopular: false },
+      { _id: "default2", plan: "standard", name: "Standard", description: "Great for families", monthlyPrice: 19.99, yearlyPrice: 199.99, features: { channels: 500, quality: "FHD", connections: 3, vodLibrary: true, premiumSports: false }, isPopular: true },
+      { _id: "default3", plan: "premium", name: "Premium", description: "Ultimate entertainment package", monthlyPrice: 29.99, yearlyPrice: 299.99, features: { channels: 1000, quality: "4K", connections: 5, vodLibrary: true, premiumSports: true }, isPopular: false },
+    ];
+
     const fetchPricingPlans = async () => {
       try {
         setLoading(true);
+        setError("");
         const response = await api.get("/api/pricing");
-        if (response.data.success) {
+        if (response.data.success && response.data.plans?.length) {
           setPricingPlans(response.data.plans);
-          console.log("Pricing plans loaded:", response.data.plans);
         } else {
-          // Handle case where success is false but no error was thrown
-          setError("Failed to load pricing plans: " + (response.data.error || "Unknown error"));
-          console.error("API returned success:false", response.data);
+          setPricingPlans(defaultPlansForFetch);
+          setError("Showing sample plans. Add plans in the admin or run the server to load saved plans.");
         }
-      } catch (error) {
-        console.error("Error fetching pricing plans:", error);
-        setError("Failed to load pricing plans: " + (error.response?.data?.error || error.message || "Network error"));
+      } catch (err) {
+        console.warn("Pricing API unavailable, using sample plans:", err.message);
+        setPricingPlans(defaultPlansForFetch);
+        setError("Showing sample plans. Start the backend (port 5000) to load your saved plans.");
       } finally {
         setLoading(false);
       }
@@ -259,15 +213,6 @@ const Pricing = () => {
     </div>
   );
 
-  // Use default plans if API fails and no plans are loaded
-  useEffect(() => {
-    if (!loading && (pricingPlans.length === 0 || pricingPlans.length < 3)) {
-      console.log("Using default pricing plans as fallback");
-      setPricingPlans(defaultPlans);
-      setError(""); // Clear error since we're using fallback data
-    }
-  }, [loading, error, defaultPlans, pricingPlans.length]);
-
   return (
     <section
       id="pricing"
@@ -318,10 +263,16 @@ const Pricing = () => {
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <p className="mt-2 text-gray-600">Loading pricing plans...</p>
           </div>
-        ) : error ? (
-          <div className="text-center py-8 text-red-600">{error}</div>
+        ) : pricingPlans.length === 0 ? (
+          <div className="text-center py-8 text-red-600">{error || "No pricing plans available."}</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <>
+            {error && (
+              <p className="text-center text-amber-400/90 text-sm mb-6 px-4 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 max-w-xl mx-auto">
+                {error}
+              </p>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {pricingPlans.map((plan) => (
               <div
                 key={plan.plan}
@@ -386,6 +337,7 @@ const Pricing = () => {
               </div>
             ))}
           </div>
+          </>
         )}
 
         {/* Additional info */}

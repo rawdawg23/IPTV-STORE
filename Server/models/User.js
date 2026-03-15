@@ -14,6 +14,12 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    firebaseUid: {
+      type: String,
+      sparse: true,
+      unique: true,
+      default: null,
+    },
     password: {
       type: String,
       required: true,
@@ -144,6 +150,7 @@ userSchema.methods.getPublicProfile = function () {
 
 // Indexes for better performance
 userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ firebaseUid: 1 }, { sparse: true });
 userSchema.index({ plan: 1 });
 userSchema.index({ subscriptionActive: 1 });
 

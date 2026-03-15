@@ -81,7 +81,7 @@ const Footer = () => {
         >
           <motion.div variants={itemVariants} className="text-left">
             <h3 className="text-xl font-bold mb-6 text-white border-b border-blue-500/30 pb-2 inline-block">
-              About Our IPTV Service
+              About Evo Media
             </h3>
             <p className="text-gray-400 mb-6">
               We provide high-quality IPTV streaming with a wide range of
@@ -188,7 +188,7 @@ const Footer = () => {
           viewport={{ once: true }}
         >
           <p className="text-gray-400">
-            &copy; {currentYear} Your IPTV Service. All rights reserved.
+            &copy; {currentYear} Evo Media. All rights reserved.
           </p>
           <p className="text-gray-500 text-sm mt-2">
             Enjoy a premium streaming experience.
