@@ -1,5 +1,5 @@
 {
-  "installCommand": "cd Client && npm ci",
+  "installCommand": "cd Client && npm ci --legacy-peer-deps",
   "buildCommand": "cd Client && npm run build",
   "outputDirectory": "Client/build",
   "rewrites": [
