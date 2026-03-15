@@ -1,24 +1,8 @@
 import React, { useState, useEffect } from "react";
 import api from "../api";
 
-const IPTVChannels = () => {
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedChannel, setSelectedChannel] = useState(null);
-  const [channelData, setChannelData] = useState([]); // State to hold channel data
-  const [error, setError] = useState(null); // State to hold error messages
-
-  const categories = [
-    { id: "all", name: "All" },
-    { id: "entertainment", name: "Entertainment" },
-    { id: "sports", name: "Sports" },
-    { id: "news", name: "News" },
-    { id: "movies", name: "Movies" },
-  ];
-
-  // Default channel data to use if API fails
-  const defaultChannels = [
+// Default channel data to use if API fails (stable reference for useEffect)
+const defaultChannels = [
     {
       id: "ch1",
       name: "Sports HD",
@@ -61,6 +45,22 @@ const IPTVChannels = () => {
     }
   ];
 
+const IPTVChannels = () => {
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedChannel, setSelectedChannel] = useState(null);
+  const [channelData, setChannelData] = useState([]);
+  const [error, setError] = useState(null);
+
+  const categories = [
+    { id: "all", name: "All" },
+    { id: "entertainment", name: "Entertainment" },
+    { id: "sports", name: "Sports" },
+    { id: "news", name: "News" },
+    { id: "movies", name: "Movies" },
+  ];
+
   // Fetch channel data from the backend API
   useEffect(() => {
     const fetchChannels = async () => {
@@ -84,7 +84,7 @@ const IPTVChannels = () => {
       }
     };
     fetchChannels();
-  }, []);
+  }, [defaultChannels]);
 
   const filteredChannels = channelData.filter((channel) => {
     const matchesCategory =

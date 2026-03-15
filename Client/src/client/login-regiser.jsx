@@ -11,7 +11,6 @@ import {
   User,
   Fingerprint,
   Sparkles,
-  LucideIcon,
 } from "lucide-react";
 import "./client.css";
 import api from "../api";
@@ -658,12 +657,12 @@ const Client = () => {
                         </label>
                       </div>
                       <div>
-                        <a
-                          href="#"
-                          className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200"
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200 bg-transparent border-0 cursor-pointer p-0"
                         >
                           Forgot password?
-                        </a>
+                        </button>
                       </div>
                     </div>
                   )}

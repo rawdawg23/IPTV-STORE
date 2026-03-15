@@ -9,7 +9,6 @@ import {
   FaGlobe,
   FaSignInAlt,
   FaSignOutAlt,
-  FaUserPlus,
 } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
 
@@ -36,13 +35,6 @@ const Navbar = () => {
 
   // Check if we're in the client area
   const isClientPage = location.pathname === "/client";
-
-  const closeAllMenus = () => {
-    setIsMobileMenuOpen(false);
-    setIsSearchOpen(false);
-    setIsLanguageOpen(false);
-    setIsProfileMenuOpen(false);
-  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
