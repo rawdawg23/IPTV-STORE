@@ -84,7 +84,8 @@ const IPTVChannels = () => {
       }
     };
     fetchChannels();
-  }, [defaultChannels]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount; defaultChannels is module-level constant
+  }, []);
 
   const filteredChannels = channelData.filter((channel) => {
     const matchesCategory =
