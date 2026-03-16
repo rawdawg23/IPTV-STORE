@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../api";
+import { isFirebaseConfigured, getPricingFromFirestore } from "../firebase";
 
 // Floating animation component
 const FloatingElement = ({ children, delay = 0, duration = 4 }) => {
@@ -87,17 +88,22 @@ const Pricing = () => {
       try {
         setLoading(true);
         setError("");
-        const response = await api.get("/api/pricing");
-        if (response.data.success && response.data.plans?.length) {
-          setPricingPlans(response.data.plans);
+        if (isFirebaseConfigured()) {
+          const plans = await getPricingFromFirestore();
+          if (Array.isArray(plans) && plans.length > 0) {
+            setPricingPlans(plans);
+          } else {
+            setPricingPlans(defaultPlansForFetch);
+            setError("Showing sample plans. Add plans in Firestore collection 'pricing'.");
+          }
         } else {
           setPricingPlans(defaultPlansForFetch);
-          setError("Showing sample plans. Add plans in the admin or run the server to load saved plans.");
+          setError("Showing sample plans. Configure Firebase to load saved plans.");
         }
       } catch (err) {
-        console.warn("Pricing API unavailable, using sample plans:", err.message);
+        console.warn("Pricing unavailable:", err.message);
         setPricingPlans(defaultPlansForFetch);
-        setError("Showing sample plans. Start the backend (port 5000) to load your saved plans.");
+        setError("Showing sample plans.");
       } finally {
         setLoading(false);
       }
@@ -171,31 +177,27 @@ const Pricing = () => {
     return icons[plan.plan] || "📺";
   };
 
-  // Handle plan selection
+  // Handle plan selection (Firebase backend: redirect to contact; legacy API: create subscription)
   const handleSelectPlan = async (plan) => {
     setActivePlan(plan.name);
-
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/client";
+      return;
+    }
+    if (token === "firebase") {
+      window.location.href = "/#contact";
+      return;
+    }
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        // Redirect to login if not authenticated
-        window.location.href = "/client";
-        return;
-      }
-
-      // Set auth header
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-      // Create subscription
       const response = await api.post("/api/subscriptions", {
         plan: plan.plan,
         billingCycle,
-        paymentMethod: "Credit Card", // This would be handled by payment gateway
+        paymentMethod: "Credit Card",
       });
-
       if (response.data.success) {
         alert("Subscription created successfully!");
-        // Redirect to profile or dashboard
         window.location.href = "/profile";
       }
     } catch (error) {

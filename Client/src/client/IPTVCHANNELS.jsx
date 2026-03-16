@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
-import api from "../api";
+import { isFirebaseConfigured, getChannelsFromFirestore } from "../firebase";
+
+// Tiny placeholder image (avoids external via.placeholder.com which can be blocked or fail)
+const PLACEHOLDER_LOGO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect fill='%23374151' width='150' height='150'/%3E%3Ctext fill='%239ca3af' x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14'%3E📺%3C/text%3E%3C/svg%3E";
 
 // Default channel data to use if API fails (stable reference for useEffect)
 const defaultChannels = [
     {
       id: "ch1",
       name: "Sports HD",
-      logo: "https://via.placeholder.com/150?text=Sports+HD",
+      logo: PLACEHOLDER_LOGO,
       description: "24/7 sports coverage from around the world",
       categories: ["sports"],
       languages: ["English"],
@@ -16,7 +19,7 @@ const defaultChannels = [
     {
       id: "ch2",
       name: "Movie Central",
-      logo: "https://via.placeholder.com/150?text=Movie+Central",
+      logo: PLACEHOLDER_LOGO,
       description: "Latest blockbusters and classic films",
       categories: ["movies", "entertainment"],
       languages: ["English", "Spanish"],
@@ -26,7 +29,7 @@ const defaultChannels = [
     {
       id: "ch3",
       name: "News 24",
-      logo: "https://via.placeholder.com/150?text=News+24",
+      logo: PLACEHOLDER_LOGO,
       description: "Breaking news and current events",
       categories: ["news"],
       languages: ["English"],
@@ -36,7 +39,7 @@ const defaultChannels = [
     {
       id: "ch4",
       name: "Entertainment Plus",
-      logo: "https://via.placeholder.com/150?text=Entertainment+Plus",
+      logo: PLACEHOLDER_LOGO,
       description: "Reality shows, series and entertainment",
       categories: ["entertainment"],
       languages: ["English"],
@@ -61,30 +64,34 @@ const IPTVChannels = () => {
     { id: "movies", name: "Movies" },
   ];
 
-  // Fetch channel data from the backend API
+  // Fetch channel data from Firestore (Firebase backend) or use defaults
   useEffect(() => {
     const fetchChannels = async () => {
       try {
         setIsLoading(true);
-        const response = await api.get("/api/channels");
-        console.log("Channels data received:", response.data);
-        if (Array.isArray(response.data) && response.data.length > 0) {
-          setChannelData(response.data);
+        if (isFirebaseConfigured()) {
+          const data = await getChannelsFromFirestore();
+          if (Array.isArray(data) && data.length > 0) {
+            setChannelData(data);
+            setError(null);
+          } else {
+            setChannelData(defaultChannels);
+            setError("Using default channel data.");
+          }
         } else {
-          console.error("Invalid channel data format or empty array:", response.data);
           setChannelData(defaultChannels);
-          setError("Using default channel data");
+          setError("Using default channel data.");
         }
       } catch (err) {
-        console.error("API Error:", err);
+        console.warn("Channels unavailable:", err.message);
         setChannelData(defaultChannels);
-        setError("Failed to load channels from server. Using default data.");
+        setError("Using default channel data.");
       } finally {
         setIsLoading(false);
       }
     };
     fetchChannels();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount; defaultChannels is module-level constant
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
 
   const filteredChannels = channelData.filter((channel) => {

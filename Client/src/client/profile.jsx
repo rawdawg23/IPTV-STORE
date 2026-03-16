@@ -14,8 +14,9 @@ import {
   Camera,
 } from "lucide-react";
 // Assuming you have a CSS file for styles
-import "./profile.css"; // Assuming you have a CSS file for styles
+import "./profile.css";
 import api from "../api";
+import { getFirebaseAuth, signOut as firebaseSignOut } from "../firebase";
 
 // Main User Profile Component
 export default function Profile() {
@@ -34,39 +35,42 @@ export default function Profile() {
       : "absolute inset-0 opacity-0 pointer-events-none"; // Hide and disable interaction
   };
 
-  // Fetch user data from API
+  // Fetch user data: Firebase (from localStorage) or API
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    if (!token && !storedUser) {
+      window.location.href = "/client";
+      return;
+    }
+    // Firebase backend: use stored user
+    if (token === "firebase" && storedUser) {
+      try {
+        setUserData(JSON.parse(storedUser));
+      } catch (_) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/client";
+      }
+      setLoading(false);
+      return;
+    }
+    // Legacy: fetch from API
     const fetchUserData = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          // Redirect to login if no token
-          window.location.href = "/client";
-          return;
-        }
-
-        // Set auth header
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
         const response = await api.get("/api/auth/profile");
-
-        if (response.data.success) {
-          setUserData(response.data.user);
-          setLoading(false);
-        }
+        if (response.data.success) setUserData(response.data.user);
       } catch (error) {
-        console.error("Profile fetch error:", error);
         if (error.response?.status === 401) {
-          // Token expired or invalid, redirect to login
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           window.location.href = "/client";
-        } else {
-          setLoading(false);
+          return;
         }
       }
+      setLoading(false);
     };
-
     fetchUserData();
   }, []);
 
@@ -86,11 +90,19 @@ export default function Profile() {
   };
 
   // Handle sign out
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     setRedirecting(true);
+    const token = localStorage.getItem("token");
+    if (token === "firebase") {
+      try {
+        await firebaseSignOut();
+      } catch (_) {}
+    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setTimeout(() => {
-      window.location.href = "/client"; // Redirect to client page
-    }, 1000);
+      window.location.href = "/client";
+    }, 500);
   };
 
   // Handle plan upgrade

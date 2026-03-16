@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FiMail, FiSend } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
-import api from "../api";
+import { isFirebaseConfigured, submitContactToFirestore } from "../firebase";
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -29,22 +29,17 @@ const ContactUs = () => {
     setError("");
 
     try {
-      const response = await api.post("/api/contacts", formData);
-
-      if (response.data.success) {
-        setIsSubmitted(true);
-        setFormData({ name: "", email: "", message: "" });
-
-        setTimeout(() => {
-          setIsSubmitted(false);
-        }, 3000);
+      if (!isFirebaseConfigured()) {
+        setError("Contact form requires Firebase. Please configure Firebase.");
+        return;
       }
-    } catch (error) {
-      console.error("Contact submission error:", error);
-      setError(
-        error.response?.data?.error ||
-          "Failed to send message. Please try again."
-      );
+      await submitContactToFirestore(formData.name, formData.email, formData.message);
+      setIsSubmitted(true);
+      setFormData({ name: "", email: "", message: "" });
+      setTimeout(() => setIsSubmitted(false), 3000);
+    } catch (err) {
+      console.error("Contact submission error:", err);
+      setError(err.message || "Failed to send message. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

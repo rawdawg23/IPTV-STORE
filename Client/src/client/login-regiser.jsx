@@ -13,8 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import "./client.css";
-import api from "../api";
-import { isFirebaseConfigured, signInWithGoogle } from "../firebase";
+import { isFirebaseConfigured, signInWithGoogle, signInWithEmail, signUpWithEmail } from "../firebase";
 
 const Client = () => {
   const [activeTab, setActiveTab] = useState("login");
@@ -51,74 +50,51 @@ const Client = () => {
     });
   };
 
+  const setFirebaseUserInStorage = (user, displayName) => {
+    const name = displayName || user.displayName || user.email?.split("@")[0] || "User";
+    localStorage.setItem("token", "firebase");
+    localStorage.setItem("user", JSON.stringify({
+      _id: user.uid,
+      email: user.email || "",
+      name,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setIsSubmitting(true);
 
+    if (!isFirebaseConfigured()) {
+      setError("Auth requires Firebase. Please configure Firebase env vars.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       if (activeTab === "register") {
-        // Registration
         if (formData.password !== formData.confirmPassword) {
           setError("Passwords do not match");
           return;
         }
-
-        const response = await api.post("/api/auth/register", {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        });
-
-        if (response.data.success) {
-          setSuccess("Registration successful! You can now login.");
-          // Store token
-          localStorage.setItem("token", response.data.token);
-          localStorage.setItem("user", JSON.stringify(response.data.user));
-
-          // Reset form
-          setFormData({
-            name: "",
-            email: "",
-            password: "",
-            confirmPassword: "",
-          });
-
-          // Switch to login tab after successful registration
-          setTimeout(() => {
-            setActiveTab("login");
-            setSuccess("");
-          }, 2000);
-        }
+        const user = await signUpWithEmail(formData.email, formData.password);
+        setFirebaseUserInStorage(user, formData.name);
+        setSuccess("Account created! Redirecting...");
+        setFormData({ name: "", email: "", password: "", confirmPassword: "" });
+        setTimeout(() => { window.location.href = "/profile"; }, 800);
       } else {
-        // Login
-        const response = await api.post("/api/auth/login", {
-          email: formData.email,
-          password: formData.password,
-        });
-
-        if (response.data.success) {
-          setSuccess("Login successful!");
-          // Store token and user data
-          localStorage.setItem("token", response.data.token);
-          localStorage.setItem("user", JSON.stringify(response.data.user));
-
-          // Redirect to profile or dashboard
-          setTimeout(() => {
-            window.location.href = "/profile";
-          }, 1000);
-        }
+        const user = await signInWithEmail(formData.email, formData.password);
+        setFirebaseUserInStorage(user);
+        setSuccess("Login successful!");
+        setTimeout(() => { window.location.href = "/profile"; }, 800);
       }
-    } catch (error) {
-      console.error("Auth error:", error);
-      setError(
-        error.response?.data?.error ||
-          (activeTab === "register" ? "Registration failed" : "Login failed")
-      );
-} finally {
-    setIsSubmitting(false);
-  }
+    } catch (err) {
+      console.error("Auth error:", err);
+      setError(err.message || (activeTab === "register" ? "Registration failed" : "Login failed"));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -130,19 +106,13 @@ const Client = () => {
     setSuccess("");
     setIsSubmitting(true);
     try {
-      const idToken = await signInWithGoogle();
-      const response = await api.post("/api/auth/firebase", { idToken });
-      if (response.data.success) {
-        setSuccess("Signed in with Google!");
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        setTimeout(() => {
-          window.location.href = "/profile";
-        }, 800);
-      }
+      const user = await signInWithGoogle();
+      setFirebaseUserInStorage(user);
+      setSuccess("Signed in with Google!");
+      setTimeout(() => { window.location.href = "/profile"; }, 800);
     } catch (err) {
       console.error("Google sign-in error:", err);
-      setError(err.response?.data?.error || err.message || "Google sign-in failed");
+      setError(err.message || "Google sign-in failed");
     } finally {
       setIsSubmitting(false);
     }

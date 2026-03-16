@@ -1,7 +1,22 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read/write only if user is signed in (for future use)
+    // Channels: read by anyone (public listing), write by authenticated
+    match /channels/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    // Pricing: read by anyone, write by authenticated
+    match /pricing/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    // Contacts: anyone can create (contact form), read by authenticated
+    match /contacts/{id} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+    // Fallback: other collections require auth
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
